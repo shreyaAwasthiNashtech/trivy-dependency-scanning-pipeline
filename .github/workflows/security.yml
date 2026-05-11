@@ -96,6 +96,7 @@ jobs:
       run: python shared/scripts/parse_report.py
       continue-on-error: true
 
+    # PHASE 11: Upload all reports including audit logs and historical archives
     - name: Upload Scan Results
       uses: actions/upload-artifact@v4
       with:

@@ -2,6 +2,13 @@ import json
 import os
 import requests
 from datetime import datetime, timedelta
+from report_manager import (
+    initialize_report_management,
+    archive_scan_reports,
+    add_scan_to_history,
+    generate_management_summary,
+    log_audit
+)
 
 # ---------------------------------------------------
 # Configuration
@@ -281,6 +288,10 @@ print("\n===================================================")
 print(" DevSecOps Multi-Technology Vulnerability Parser ")
 print("===================================================\n")
 
+# Initialize report management system
+initialize_report_management()
+log_audit("START: Vulnerability scanning initiated")
+
 for report in REPORTS:
 
     print(f"[INFO] Processing {report['name']} report...")
@@ -340,6 +351,15 @@ with open(OUTPUT_FILE, "w") as outfile:
 generate_html_report(summary)
 
 # ---------------------------------------------------
+# Report Management: Archive and History
+# ---------------------------------------------------
+
+archive_path = archive_scan_reports()
+log_audit(f"SCAN_COMPLETE: {summary['total_vulnerabilities']} vulnerabilities found")
+
+add_scan_to_history(summary)
+
+# ---------------------------------------------------
 # Console Summary Output
 # ---------------------------------------------------
 
@@ -360,6 +380,34 @@ for app in summary["applications_scanned"]:
 print(f"\n[INFO] Consolidated ticket report saved:")
 print(f"       {OUTPUT_FILE}")
 
+# ---------------------------------------------------
+# Report Management Summary
+# ---------------------------------------------------
+
 print("\n===================================================")
-print(" Ticket Simulation Complete ")
+print(" Report Management Summary ")
+print("===================================================\n")
+
+mgmt_summary = generate_management_summary()
+
+print(f"Archive Location: {mgmt_summary['archive_location']}")
+print(f"Total Scans Recorded: {mgmt_summary['total_scans_recorded']}")
+
+if mgmt_summary['scan_trends']:
+    trends = mgmt_summary['scan_trends']
+    vuln_change = trends['vulnerability_change']
+    critical_change = trends['critical_change']
+    high_change = trends['high_change']
+
+    print("\nVulnerability Trends (vs Previous Scan):")
+    print(f"  Total Change: {vuln_change:+d}")
+    print(f"  CRITICAL Change: {critical_change:+d}")
+    print(f"  HIGH Change: {high_change:+d}")
+
+print("\nRecent Audit Logs (last 5):")
+for log_line in mgmt_summary['recent_audit_logs'][-5:]:
+    print(f"  {log_line}")
+
+print("\n===================================================")
+print(" DevSecOps Security Pipeline Complete ")
 print("===================================================\n")
