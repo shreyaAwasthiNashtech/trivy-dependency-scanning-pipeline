@@ -64,6 +64,34 @@ jobs:
         severity: 'CRITICAL,HIGH'
         exit-code: '0'
 
+    # PHASE 10: Generate SARIF Reports for GitHub Security Integration
+    - name: Generate SARIF Report - Python
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './python-app'
+        format: 'sarif'
+        output: 'shared/reports/python-results.sarif'
+
+    - name: Generate SARIF Report - Node.js
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './nodejs-app'
+        format: 'sarif'
+        output: 'shared/reports/nodejs-results.sarif'
+
+    - name: Generate SARIF Report - Java
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './java-app'
+        format: 'sarif'
+        output: 'shared/reports/java-results.sarif'
+
+    - name: Install Python Dependencies
+      run: pip install -r shared/scripts/requirements.txt
+
     - name: Parse Reports and Generate SLA Tickets
       run: python shared/scripts/parse_report.py
       continue-on-error: true
