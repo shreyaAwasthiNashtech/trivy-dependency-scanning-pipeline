@@ -28,6 +28,7 @@ The pipeline:
 - Simulates ticket creation with SLA tracking
 
 ## Project Structure
+```
 vulnerable-python-app/
 │
 ├── app.py
@@ -38,8 +39,10 @@ vulnerable-python-app/
 ├── scan-output/
 └── .github/workflows/
     └── security.yml
+ ```
 
 ## How the Pipeline Works
+```
 Code Push
    ↓
 CI Pipeline Triggered
@@ -59,7 +62,7 @@ Parse Report
 Simulate Ticket Creation
    ↓
 Assign SLA Deadlines
-
+```
 
 ## Key Functionalities
 **Dependency Scanning**
@@ -86,8 +89,8 @@ Creates structured outputs representing security tickets.
 
 Assigns deadlines based on severity:
 
-- Critical → 2 days
-- High → 5 days
+- Critical → 2-4 hrs
+- High → 24 hrs
 
 ## Failure Scenarios Demonstrated
 
@@ -97,6 +100,90 @@ This project includes controlled failure cases:
 - Vulnerable dependencies (security failure)
 - Docker misconfigurations
 - Policy-based enforcement failures
+
+## Trivy Installation
+command: docker pull aquasec/trivy
+
+Initially, I scanned the project directory directly:
+docker run --rm -v ${PWD}:/app aquasec/trivy fs /app
+
+## Problems Faced During Installation and Setup
+
+Problem 1 — Dependency Conflict During Docker Build
+
+While building the Docker image, I initially used:
+
+requests==2.19.1
+urllib3==1.24.1
+
+This caused a build failure because:
+
+requests 2.19.1 requires:
+
+urllib3 < 1.24
+but urllib3==1.24.1 was installed
+Error Encountered
+ResolutionImpossible
+Fix Applied
+
+Updated dependency to:
+
+urllib3==1.23
+
+This kept the dependency intentionally vulnerable while also maintaining compatibility.
+
+Problem 2 — Trivy Could Not Find Local Docker Image
+
+When running:
+
+docker run --rm aquasec/trivy image vulnerable-app
+
+Trivy failed with:
+
+unable to find the specified image "vulnerable-app"
+Root Cause
+
+Trivy was running inside a container and could not access Docker images stored on the host machine.
+
+Containers are isolated environments.
+
+Fix Applied:
+
+Docker socket mounting was added:
+
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image vulnerable-app
+
+Why This Worked:
+The Docker socket gives the Trivy container access to the host Docker daemon.
+
+This allowed Trivy to:
+inspect local images
+access image layers
+perform vulnerability scanning successfully
+
+Problem 3 — PowerShell Formatting Error
+
+While using multiline commands in PowerShell, the backtick character was incorrectly placed.
+
+This caused:
+
+docker: invalid reference format
+Cause
+
+In PowerShell:
+
+backtick (`) is a line continuation character
+it must appear at the end of the line
+
+**Fix**
+Used either:
+
+proper multiline formatting
+or a simpler single-line command
+
+Example:
+
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image vulnerable-a
 
 ## Running the Project Locally
 **Build Docker Image**

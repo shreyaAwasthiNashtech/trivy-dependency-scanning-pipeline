@@ -1,0 +1,14 @@
+{
+  "name": "vulnerable-node-app",
+  "version": "1.0.0",
+  "description": "Intentionally vulnerable Node.js app for Trivy scanning",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "4.16.0",
+    "lodash": "4.17.11",
+    "axios": "0.18.0"
+  }
+}
